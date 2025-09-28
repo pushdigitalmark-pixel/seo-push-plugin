@@ -1,0 +1,22 @@
+name: Build & Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build ZIP
+        run: |
+          mkdir -p dist
+          zip -r dist/seo-push-plugin-${GITHUB_REF_NAME}.zip . \
+            -x "dist/*" -x ".git/*" -x ".github/*"
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/seo-push-plugin-*.zip
