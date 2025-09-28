@@ -14,6 +14,7 @@ if ( ! defined('ABSPATH') ) exit;
 /** קבועים */
 define('VIBE_CODING_SEO_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VIBE_CODING_SEO_PLUGIN_URL',  plugin_dir_url(__FILE__));
+vibe_seo_safe_require('inc/ai.php');
 
 /** טעינה בטוחה (ללא fn() כדי לתמוך ב־PHP ישנים) */
 function vibe_seo_safe_require($rel){
