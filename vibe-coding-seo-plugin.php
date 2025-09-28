@@ -14,6 +14,14 @@ if ( ! defined('ABSPATH') ) exit;
 /** תחילה נגדיר קבועים (חשוב לפני require_once) */
 define('VIBE_CODING_SEO_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VIBE_CODING_SEO_PLUGIN_URL',  plugin_dir_url(__FILE__));
+require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/activator.php';
+require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/metabox.php';
+require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/rest.php';
+
+// רישום הפעלה חד-פעמית
+if ( function_exists('vibe_seo_activate') ) {
+    register_activation_hook(__FILE__, 'vibe_seo_activate');
+}
 
 /** עוזר לטעינה בטוחה – לא מפיל את האתר אם קובץ חסר */
 if ( ! function_exists('vibe_seo_safe_require') ) {
