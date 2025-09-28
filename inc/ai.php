@@ -11,17 +11,19 @@ function vibe_generate_article_ajax(){
 
     $post_id  = isset($_POST['post_id']) ? (int) $_POST['post_id'] : 0;
     $keywords = isset($_POST['keywords']) ? sanitize_text_field($_POST['keywords']) : '';
-    if (!$post_id) wp_send_json_error(array('message'=>'post_id חסר'), 400);
+    if (!$post_id) {
+        wp_send_json_error(array('message'=>'post_id חסר'), 400);
+    }
 
-    // פרמטרים תוכניים (בלי מפתח)
+    // פרמטרים תוכניים (ללא מפתח)
     $s = function_exists('seo_push_get_settings') ? seo_push_get_settings() : array();
     $tone         = isset($s['tone']) ? $s['tone'] : 'professional';
     $target_words = isset($s['target_words']) ? (int)$s['target_words'] : 1200;
 
-    // *** המפתח מגיע רק מהשרת (wp-config.php או משתנה סביבה) ***
+    // *** המפתח רק מהשרת (wp-config.php או inc/secret.php או ENV) ***
     $api_key = defined('VIBE_OPENAI_KEY') ? VIBE_OPENAI_KEY : getenv('VIBE_OPENAI_KEY');
     if (empty($api_key)) {
-        wp_send_json_error(array('message'=>'מפתח OpenAI חסר (VIBE_OPENAI_KEY). הגדר ב-wp-config.php.'), 400);
+        wp_send_json_error(array('message'=>'מפתח OpenAI חסר (VIBE_OPENAI_KEY). הגדר ב-wp-config.php או צור inc/secret.php בבילד'), 400);
     }
 
     $prompt = "אתה כותב תוכן SEO בעברית בסגנון ".($tone==='casual'?'קליל':'ענייני/מקצועי').". ".
@@ -31,13 +33,13 @@ function vibe_generate_article_ajax(){
     $body = array(
         'model' => 'gpt-4o-mini',
         'messages' => array(
-            array('role'=>'system','content'=>'אתה כותב SEO בעברית. שמור על מבנה ברור וכותרות.'),
+            array('role'=>'system','content'=>'אתה כותב SEO בעברית. שמור על מבנה ברור, כותרות ותתי-כותרות.'),
             array('role'=>'user','content'=>$prompt),
         ),
         'temperature' => 0.7,
     );
 
-    $response = wp_remote_post($endpoint, array(
+    $resp = wp_remote_post($endpoint, array(
         'timeout' => 60,
         'headers' => array(
             'Authorization' => 'Bearer ' . $api_key,
@@ -46,12 +48,12 @@ function vibe_generate_article_ajax(){
         'body' => wp_json_encode($body),
     ));
 
-    if (is_wp_error($response)) {
-        wp_send_json_error(array('message'=>'שגיאת רשת: '.$response->get_error_message()), 500);
+    if (is_wp_error($resp)) {
+        wp_send_json_error(array('message'=>'שגיאת רשת: '.$resp->get_error_message()), 500);
     }
 
-    $code = wp_remote_retrieve_response_code($response);
-    $json = json_decode(wp_remote_retrieve_body($response), true);
+    $code = wp_remote_retrieve_response_code($resp);
+    $json = json_decode(wp_remote_retrieve_body($resp), true);
 
     if ($code < 200 || $code >= 300 || empty($json['choices'][0]['message']['content'])) {
         $msg = isset($json['error']['message']) ? $json['error']['message'] : 'שגיאה מה-API';
@@ -60,6 +62,7 @@ function vibe_generate_article_ajax(){
 
     $content_raw = $json['choices'][0]['message']['content'];
 
+    // מנקים HTML מסוכן, שומרים כותרות/רשימות/קוד בסיסיות
     $allowed = array(
         'p'=>array(),'br'=>array(),'strong'=>array(),'em'=>array(),
         'ul'=>array(),'ol'=>array(),'li'=>array(),
@@ -70,8 +73,4 @@ function vibe_generate_article_ajax(){
 
     // מחזירים לעורך (לא שומרים בכוח)
     wp_send_json_success(array('content'=>$content_clean));
-}
-$api_key = defined('VIBE_OPENAI_KEY') ? VIBE_OPENAI_KEY : '';
-if (empty($api_key)) {
-    wp_send_json_error(['message' => 'מפתח OpenAI חסר (VIBE_OPENAI_KEY). צור Release או הגדר inc/secret.php.'], 400);
 }
