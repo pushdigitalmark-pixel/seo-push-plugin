@@ -115,3 +115,13 @@ if (!function_exists('seo_push_field_save_mode')) {
     </select>
   <?php }
 }
+if (!defined('VIBE_OPENAI_KEY')) {
+  add_settings_field(
+    'seo_push_openai_key',
+    'OpenAI API Key',
+    'seo_push_field_openai_key',
+    'seo-push-settings',
+    'seo_push_section_general'
+  );
+}
+
