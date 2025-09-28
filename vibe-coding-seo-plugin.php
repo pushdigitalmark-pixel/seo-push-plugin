@@ -75,3 +75,5 @@ add_action('admin_enqueue_scripts', function ($hook) {
     ';
     wp_add_inline_style('vibe-seo-admin', $css);
 });
+vibe_seo_safe_require('inc/secret.php'); // נוצר בבילד מגיטהאב אקשנס (או הגדר ב-wp-config.php)
+vibe_seo_safe_require('inc/ai.php');
