@@ -51,7 +51,7 @@ add_action('plugins_loaded', function () {
     }
 });
 
-/** Enqueue נכסים רק אם קיימים */
+
 add_action('wp_enqueue_scripts', function () {
     $js  = VIBE_CODING_SEO_PLUGIN_PATH . 'assets/app.js';
     $css = VIBE_CODING_SEO_PLUGIN_PATH . 'assets/app.css';
@@ -62,11 +62,6 @@ add_action('wp_enqueue_scripts', function () {
         wp_enqueue_style('vibe-coding-seo-style', VIBE_CODING_SEO_PLUGIN_URL . 'assets/app.css', array(), '1.0.5');
     }
 });
-
-/* ------------------------------------------------------------------------- *
- * Admin Settings Page
- * ------------------------------------------------------------------------- */
-
 if ( ! function_exists('seo_push_add_admin_menu') ) {
     add_action('admin_menu', 'seo_push_add_admin_menu');
     function seo_push_add_admin_menu() {
@@ -74,7 +69,7 @@ if ( ! function_exists('seo_push_add_admin_menu') ) {
             'SEO Push הגדרות',
             }
 }
-// --- Admin UI polish for SEO Push settings page ---
+
 add_action('admin_enqueue_scripts', function ($hook) {
     // נטען רק בעמוד: הגדרות → SEO Push
     if ($hook !== 'toplevel_page_seo-push-settings') return;
