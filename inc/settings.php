@@ -37,6 +37,17 @@ if (!function_exists('seo_push_settings_init')) {
     add_settings_field('seo_push_tone','טון כתיבה','seo_push_field_tone','seo-push-settings','seo_push_section_general');
     add_settings_field('seo_push_target_words','אורך יעד (מילים)','seo_push_field_target_words','seo-push-settings','seo_push_section_general');
     add_settings_field('seo_push_save_mode','מצב שמירה','seo_push_field_save_mode','seo-push-settings','seo_push_section_general');
+
+    // תוספת: OpenAI API Key
+    if (!defined('VIBE_OPENAI_KEY')) {
+      add_settings_field(
+        'seo_push_openai_key',
+        'OpenAI API Key',
+        'seo_push_field_openai_key',
+        'seo-push-settings',
+        'seo_push_section_general'
+      );
+    }
   }
 }
 
@@ -115,13 +126,4 @@ if (!function_exists('seo_push_field_save_mode')) {
     </select>
   <?php }
 }
-if (!defined('VIBE_OPENAI_KEY')) {
-  add_settings_field(
-    'seo_push_openai_key',
-    'OpenAI API Key',
-    'seo_push_field_openai_key',
-    'seo-push-settings',
-    'seo_push_section_general'
-  );
-}
-
+// כאן תוכל להוסיף את הפונקציה seo_push_field_openai_key אם היא לא קיימת עדיין
