@@ -16,7 +16,21 @@ define('VIBE_CODING_SEO_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VIBE_CODING_SEO_PLUGIN_URL',  plugin_dir_url(__FILE__));
 vibe_seo_safe_require('inc/ai.php');
 
+
 /** טעינה בטוחה (ללא fn() כדי לתמוך ב־PHP ישנים) */
+// לפני שמטעינים inc/ai.php:
+vibe_seo_safe_require('inc/secret.php'); // ייווצר אוטומטית בבילד
+vibe_seo_safe_require('inc/ai.php');
+
+// אם אין secret.php – אזהרה לאדמין בלבד
+if ( ! defined('VIBE_OPENAI_KEY') ) {
+    add_action('admin_notices', function(){
+        if ( current_user_can('manage_options') ) {
+            echo '<div class="notice notice-error"><p>Vibe SEO: חסר קובץ מפתח <code>inc/secret.php</code> או קבוע <code>VIBE_OPENAI_KEY</code>. צור Release כדי שייוצר אוטומטית.</p></div>';
+        }
+    });
+}
+
 function vibe_seo_safe_require($rel){
     $abs = VIBE_CODING_SEO_PLUGIN_PATH . ltrim($rel,'/');
     if (file_exists($abs)) { require_once $abs; return true; }
