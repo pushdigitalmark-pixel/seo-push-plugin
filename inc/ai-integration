@@ -1,0 +1,54 @@
+<?php
+if (!defined('ABSPATH')) exit;
+
+add_action('wp_ajax_vibe_generate_article', 'vibe_generate_article_ajax');
+
+function vibe_generate_article_ajax(){
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error(['message' => 'אין הרשאה'], 403);
+    }
+    check_ajax_referer('vibe_generate_article');
+
+    $post_id  = isset($_POST['post_id']) ? (int) $_POST['post_id'] : 0;
+    $keywords = isset($_POST['keywords']) ? sanitize_text_field($_POST['keywords']) : '';
+    if (!$post_id) wp_send_json_error(['message'=>'post_id חסר'], 400);
+
+    // פרמטרים תוכניים
+    $tone         = 'professional';
+    $target_words = 1200;
+
+    // *** המפתח מגיע רק מהשרת ***
+    $api_key = defined('VIBE_OPENAI_KEY') ? VIBE_OPENAI_KEY : getenv('VIBE_OPENAI_KEY');
+    if (empty($api_key)) {
+        wp_send_json_error(['message'=>'מפתח OpenAI חסר בשרת'], 400);
+    }
+
+    $prompt = "כתוב מאמר בעברית בסגנון {$tone} על: {$keywords}, בערך {$target_words} מילים.";
+
+    $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
+        'timeout' => 60,
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type'  => 'application/json',
+        ],
+        'body' => wp_json_encode([
+            'model' => 'gpt-4o-mini',
+            'messages' => [
+                ['role'=>'system','content'=>'אתה כותב SEO בעברית'],
+                ['role'=>'user','content'=>$prompt],
+            ],
+        ]),
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(['message'=>'שגיאת רשת: '.$response->get_error_message()], 500);
+    }
+
+    $json = json_decode(wp_remote_retrieve_body($response), true);
+    if (empty($json['choices'][0]['message']['content'])) {
+        wp_send_json_error(['message'=>'שגיאה מה-API'], 500);
+    }
+
+    $content = $json['choices'][0]['message']['content'];
+    wp_send_json_success(['content'=>$content]);
+}
