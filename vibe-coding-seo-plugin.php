@@ -15,6 +15,8 @@ if ( ! defined('ABSPATH') ) exit;
 define('VIBE_CODING_SEO_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VIBE_CODING_SEO_PLUGIN_URL',  plugin_dir_url(__FILE__));
 vibe_seo_safe_require('inc/ai.php');
+vibe_seo_safe_require('inc/secret.php'); // נוצר בבילד או הוגדר ב-wp-config.php
+vibe_seo_safe_require('inc/ai.php');     // מכיל את ה-AJAX ליצירת המאמר
 
 
 /** טעינה בטוחה (ללא fn() כדי לתמוך ב־PHP ישנים) */
