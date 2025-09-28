@@ -72,3 +72,78 @@ if ( ! function_exists('seo_push_add_admin_menu') ) {
     function seo_push_add_admin_menu() {
         add_menu_page(
             'SEO Push הגדרות',
+            }
+}
+// --- Admin UI polish for SEO Push settings page ---
+add_action('admin_enqueue_scripts', function ($hook) {
+    // נטען רק בעמוד: הגדרות → SEO Push
+    if ($hook !== 'toplevel_page_seo-push-settings') return;
+
+    // נרשום "סגנון ריק" ונזריק אליו CSS אינליין
+    wp_register_style('vibe-seo-admin', false);
+    wp_enqueue_style('vibe-seo-admin');
+
+    $css = '
+    /* מסגרת כללית */
+    body.toplevel_page_seo-push-settings .wrap { max-width: 980px; }
+    body.toplevel_page_seo-push-settings .wrap h1 { margin-bottom: 18px; }
+
+    /* כרטיס יפה להגדרות */
+    body.toplevel_page_seo-push-settings .form-table {
+        background: #fff;
+        padding: 24px 26px;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0,0,0,.06);
+        border: 1px solid #e7e7e7;
+    }
+
+    /* שתי עמודות נוחות: תווית / שדה */
+    body.toplevel_page_seo-push-settings .form-table th {
+        width: 230px;
+        font-weight: 600;
+        color: #23282d;
+        vertical-align: middle;
+        padding-top: 16px;
+    }
+    body.toplevel_page_seo-push-settings .form-table td {
+        padding-top: 12px;
+        padding-bottom: 18px;
+    }
+
+    /* שדות גדולים ונקיים */
+    body.toplevel_page_seo-push-settings input[type="text"],
+    body.toplevel_page_seo-push-settings input[type="number"],
+    body.toplevel_page_seo-push-settings select {
+        width: 100%;
+        max-width: 520px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid #d9d9d9;
+        box-shadow: none;
+        padding: 6px 12px;
+        font-size: 14px;
+        background: #fff;
+    }
+    body.toplevel_page_seo-push-settings .description {
+        margin-top: 6px;
+        color: #6b7280;
+        font-size: 12.5px;
+    }
+
+    /* כפתור שמירה יותר מודגש */
+    body.toplevel_page_seo-push-settings .submit .button-primary {
+        height: 42px;
+        line-height: 40px;
+        padding: 0 20px;
+        border-radius: 10px;
+        font-size: 15px;
+        box-shadow: 0 8px 18px rgba(0,115,170,.18);
+    }
+
+    /* ריווח יפה מלמעלה (כשהודעת admin notice תופסת מקום) */
+    body.toplevel_page_seo-push-settings .wrap > form { margin-top: 12px; }
+    ';
+
+    wp_add_inline_style('vibe-seo-admin', $css);
+});
+
