@@ -1,0 +1,2 @@
+<?php
+define('VIBE_OPENAI_KEY', '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');
