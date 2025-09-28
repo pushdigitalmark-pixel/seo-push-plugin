@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Vibe Coding SEO Plugin
-Description: Minimal valid skeleton plugin to use as a template/wrapper.
-Version: 1.0.1
+Description: Minimal valid skeleton plugin with safe boot & settings.
+Version: 1.0.4
 Author: Push Digital
 Text Domain: vibe-coding-seo-plugin
 Requires PHP: 7.4
@@ -10,17 +10,37 @@ Requires at least: 5.8
 Tested up to: 6.6
 */
 if ( ! defined('ABSPATH') ) exit;
-require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/activator.php';
-register_activation_hook(__FILE__, 'vibe_seo_activate');
-require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/metabox.php';
-require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/score.php';
 
+/** תחילה נגדיר קבועים (חשוב לפני require_once) */
 define('VIBE_CODING_SEO_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VIBE_CODING_SEO_PLUGIN_URL',  plugin_dir_url(__FILE__));
 
-/**
- * Bootstrap (אופציונלי אם יש קובץ inc/bootstrap.php)
- */
+/** עוזר לטעינה בטוחה – לא מפיל את האתר אם קובץ חסר */
+if ( ! function_exists('vibe_seo_safe_require') ) {
+    function vibe_seo_safe_require( $relative ) {
+        $abs = VIBE_CODING_SEO_PLUGIN_PATH . ltrim($relative, '/');
+        if ( file_exists($abs) ) {
+            require_once $abs;
+            return true;
+        }
+        add_action('admin_notices', function() use ($relative){
+            if ( current_user_can('manage_options') ) {
+                echo '<div class="notice notice-warning"><p>Vibe SEO: קובץ חסר: <code>' . esc_html($relative) . '</code></p></div>';
+            }
+        });
+        return false;
+    }
+}
+
+/** טוענים קבצי ליבה (אם קיימים) */
+vibe_seo_safe_require('inc/activator.php');
+if ( function_exists('vibe_seo_activate') ) {
+    register_activation_hook(__FILE__, 'vibe_seo_activate');
+}
+vibe_seo_safe_require('inc/metabox.php');
+vibe_seo_safe_require('inc/score.php');
+
+/** Bootstrap אופציונלי */
 add_action('plugins_loaded', function () {
     $bootstrap = VIBE_CODING_SEO_PLUGIN_PATH . 'inc/bootstrap.php';
     if ( file_exists($bootstrap) ) {
@@ -28,23 +48,20 @@ add_action('plugins_loaded', function () {
     }
 });
 
-/**
- * Enqueue נכסים רק אם קיימים
- */
+/** Enqueue נכסים רק אם קיימים */
 add_action('wp_enqueue_scripts', function () {
     $js  = VIBE_CODING_SEO_PLUGIN_PATH . 'assets/app.js';
     $css = VIBE_CODING_SEO_PLUGIN_PATH . 'assets/app.css';
-
     if ( file_exists($js) ) {
-        wp_enqueue_script('vibe-coding-seo-app', VIBE_CODING_SEO_PLUGIN_URL . 'assets/app.js', array('jquery'), '1.0.1', true);
+        wp_enqueue_script('vibe-coding-seo-app', VIBE_CODING_SEO_PLUGIN_URL . 'assets/app.js', array('jquery'), '1.0.4', true);
     }
     if ( file_exists($css) ) {
-        wp_enqueue_style('vibe-coding-seo-style', VIBE_CODING_SEO_PLUGIN_URL . 'assets/app.css', array(), '1.0.1');
+        wp_enqueue_style('vibe-coding-seo-style', VIBE_CODING_SEO_PLUGIN_URL . 'assets/app.css', array(), '1.0.4');
     }
 });
 
 /* ------------------------------------------------------------------------- *
- * Admin Settings Page – גרסה נקייה (ללא כפילויות)
+ * Admin Settings Page – ללא כפילויות ועם guards
  * ------------------------------------------------------------------------- */
 
 if ( ! function_exists('seo_push_add_admin_menu') ) {
@@ -65,7 +82,6 @@ if ( ! function_exists('seo_push_add_admin_menu') ) {
 if ( ! function_exists('seo_push_settings_init') ) {
     add_action('admin_init', 'seo_push_settings_init');
     function seo_push_settings_init() {
-
         register_setting('seo_push_options_group', 'seo_push_settings', [
             'type'              => 'array',
             'sanitize_callback' => 'seo_push_sanitize_settings',
@@ -79,16 +95,13 @@ if ( ! function_exists('seo_push_settings_init') ) {
 
         add_settings_section('seo_push_section_general', 'הגדרות כלליות', '__return_false', 'seo-push-settings');
 
-        add_settings_field('seo_push_keywords',      'מילות מפתח יעד',     'seo_push_field_keywords',      'seo-push-settings', 'seo_push_section_general');
-        add_settings_field('seo_push_tone',          'טון כתיבה',           'seo_push_field_tone',          'seo-push-settings', 'seo_push_section_general');
-        add_settings_field('seo_push_target_words',  'אורך יעד (מילים)',    'seo_push_field_target_words',  'seo-push-settings', 'seo_push_section_general');
-        add_settings_field('seo_push_save_mode',     'מצב שמירה',           'seo_push_field_save_mode',     'seo-push-settings', 'seo_push_section_general');
+        add_settings_field('seo_push_keywords',     'מילות מפתח יעד',   'seo_push_field_keywords',     'seo-push-settings', 'seo_push_section_general');
+        add_settings_field('seo_push_tone',         'טון כתיבה',         'seo_push_field_tone',         'seo-push-settings', 'seo_push_section_general');
+        add_settings_field('seo_push_target_words', 'אורך יעד (מילים)',  'seo_push_field_target_words', 'seo-push-settings', 'seo_push_section_general');
+        add_settings_field('seo_push_save_mode',    'מצב שמירה',         'seo_push_field_save_mode',    'seo-push-settings', 'seo_push_section_general');
     }
 }
 
-/**
- * סניטציה + תאימות אחורה (אם השתמשת פעם בשדה seo_push_keyword)
- */
 if ( ! function_exists('seo_push_sanitize_settings') ) {
     function seo_push_sanitize_settings($input) {
         $out = [];
@@ -102,9 +115,6 @@ if ( ! function_exists('seo_push_sanitize_settings') ) {
     }
 }
 
-/**
- * עמוד ההגדרות
- */
 if ( ! function_exists('seo_push_settings_page') ) {
     function seo_push_settings_page() { ?>
         <div class="wrap">
@@ -120,16 +130,13 @@ if ( ! function_exists('seo_push_settings_page') ) {
     <?php }
 }
 
-/**
- * עזר: קריאת ההגדרות עם ברירות מחדל + מיגרציה משדה ישן (אם היה)
- */
 if ( ! function_exists('seo_push_get_settings') ) {
     function seo_push_get_settings() {
         $defaults = ['keywords'=>'','tone'=>'professional','target_words'=>1200,'save_mode'=>'draft'];
         $s = get_option('seo_push_settings', []);
         $s = wp_parse_args($s, $defaults);
 
-        // תאימות אחורה: אם פעם השתמשת באופציה ישנה seo_push_keyword – נמלא ממנה
+        // תאימות אחורה לאופציה ישנה
         if ( empty($s['keywords']) ) {
             $legacy = get_option('seo_push_keyword', '');
             if ( ! empty($legacy) ) {
@@ -139,8 +146,6 @@ if ( ! function_exists('seo_push_get_settings') ) {
         return $s;
     }
 }
-
-/* ---- Renderers ---- */
 
 if ( ! function_exists('seo_push_field_keywords') ) {
     function seo_push_field_keywords() {
