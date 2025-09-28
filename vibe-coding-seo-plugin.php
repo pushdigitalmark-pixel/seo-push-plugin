@@ -12,6 +12,7 @@ Tested up to: 6.6
 if ( ! defined('ABSPATH') ) exit;
 require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/activator.php';
 register_activation_hook(__FILE__, 'vibe_seo_activate');
+require_once VIBE_CODING_SEO_PLUGIN_PATH . 'inc/metabox.php';
 
 define('VIBE_CODING_SEO_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('VIBE_CODING_SEO_PLUGIN_URL',  plugin_dir_url(__FILE__));
