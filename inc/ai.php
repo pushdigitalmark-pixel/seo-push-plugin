@@ -71,3 +71,7 @@ function vibe_generate_article_ajax(){
     // מחזירים לעורך (לא שומרים בכוח)
     wp_send_json_success(array('content'=>$content_clean));
 }
+$api_key = defined('VIBE_OPENAI_KEY') ? VIBE_OPENAI_KEY : '';
+if (empty($api_key)) {
+    wp_send_json_error(['message' => 'מפתח OpenAI חסר (VIBE_OPENAI_KEY). צור Release או הגדר inc/secret.php.'], 400);
+}
